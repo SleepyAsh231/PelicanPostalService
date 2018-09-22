@@ -5,27 +5,30 @@ namespace PelicanPostalService.Framework.Player
 {
     public class FriendshipData
     {
-        public bool IsBirthday { get; private set; }
-        public NPC Who { get; private set; }
-        private readonly int giftsThisDay;
-        private readonly int giftsThisWeek;
-        private readonly bool isSpouse;
+        public static bool isBirthday;
+        public static NPC who;
+        private static int affectionLevel;
+        private static int giftsThisDay;
+        private static int giftsThisWeek;
+        private static bool isSpouse;
+        private static WorldDate lastGiftDate;        
 
         public FriendshipData(string name)
         {
-            Who = Game1.getCharacterFromName(name, true);
-            IsBirthday = Game1.currentSeason.Equals(Who.Birthday_Season) && Game1.dayOfMonth == Who.Birthday_Day;
-
+            who = Game1.getCharacterFromName(name, true);
+            affectionLevel = Game1.player.friendshipData[name].Points;
             giftsThisDay = Game1.player.friendshipData[name].GiftsToday;
             giftsThisWeek = Game1.player.friendshipData[name].GiftsThisWeek;
+            isBirthday = Game1.currentSeason.Equals(who.Birthday_Season) && Game1.dayOfMonth == who.Birthday_Day;
             isSpouse = Game1.player.friendshipData[name].IsMarried();
+            lastGiftDate = Game1.player.friendshipData[name].LastGiftDate;
         }
 
-        public bool CanReceiveGiftToday()
+        public static bool CanReceiveGiftToday()
         {
             bool normalScenario = giftsThisDay == 0 && giftsThisWeek < 2;
-            bool birthdayScenario = giftsThisDay == 0 && giftsThisWeek == 2 && IsBirthday;
-            bool marriageScenario = giftsThisDay == 0 && isSpouse;
+            bool birthdayScenario = giftsThisDay == 0 && giftsThisWeek == 2 && isBirthday;
+            bool marriageScenario = giftsThisDay == 0;
 
             return normalScenario || birthdayScenario || marriageScenario ? true : false;
         }
@@ -43,19 +46,15 @@ namespace PelicanPostalService.Framework.Player
 
             return table.Count > 0 ? Sort(table) : null;
         }
-        
-        public void Update(int points, Item item, bool quest = false)
-        {
-            // [!] Game data is read-only unless accessed directly
-            Game1.player.friendshipData[Who.displayName].Points += points;
 
-            if (quest == false)
-            {
-                ++Game1.player.friendshipData[Who.displayName].GiftsToday;
-                ++Game1.player.friendshipData[Who.displayName].GiftsThisWeek;
-                Game1.player.friendshipData[Who.displayName].LastGiftDate = Game1.Date;
-                Game1.addHUDMessage(new HUDMessage("Item sent", 2));
-            }
+        // Stardew Valley 1.3.29
+        // Game statistics can only be modified when accessed directly
+        public static void Update(int points)
+        {
+            Game1.player.friendshipData[who.displayName].Points += points;
+            ++Game1.player.friendshipData[who.displayName].GiftsToday;
+            ++Game1.player.friendshipData[who.displayName].GiftsThisWeek;
+            Game1.player.friendshipData[who.displayName].LastGiftDate = Game1.Date;
         }
 
         private static List<string> Sort(HashSet<string> table)

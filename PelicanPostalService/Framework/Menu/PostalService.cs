@@ -7,33 +7,80 @@ namespace PelicanPostalService.Framework.Menu
 {
     public class PostalService
     {
-        public static void Open()
+        private enum Status { CLEAR, REJECTED }
+        private readonly ActiveItem activeItem;
+        private readonly bool allowQuestSubmissions;
+        private bool discoveredQuest;
+        private QuestData questData;
+
+        public PostalService(ActiveItem item, bool questSubmissions)
         {
-            ActiveItem.data = Game1.player.ActiveObject;
-            if (ActiveItem.IsLegalGift() && Game1.activeClickableMenu == null)
+            allowQuestSubmissions = questSubmissions;
+            activeItem = item;
+        }
+
+        public void Open(IClickableMenu currentMenu, Tool currentTool)
+        {
+            if (GetProcessStatus() == Status.CLEAR && currentMenu == null && currentTool == null)
             {
                 List<string> options = FriendshipData.Find();
-                if (options != null)
+                Game1.activeClickableMenu = options != null ? new ChooseFromListMenu(options, OnSelectOption, false) : null;
+            }
+        }
+
+        private void FindQuestByCriteria(FriendshipData friendshipData)
+        {
+            questData = new QuestData(activeItem.Data, friendshipData.Who);
+            discoveredQuest = questData.Quest != null ? true : false;
+        }
+
+        private Status GetProcessStatus()
+        {
+            if (activeItem.Data == null)
+            {
+                return Status.REJECTED;
+            }
+
+            bool isStrictMarriageItem = activeItem.Data.DisplayName.Equals("Bouquet") || activeItem.Data.DisplayName.Equals("Mermaid's Pendant") || activeItem.Data.DisplayName.Equals("Wedding Ring");
+            if (isStrictMarriageItem)
+            {
+                return Status.REJECTED;
+            }
+
+            return activeItem.Data.canBeGivenAsGift() ? Status.CLEAR : Status.REJECTED;
+        }
+
+        private void OnSelectOption(string name)
+        {
+            FriendshipData friendshipData = new FriendshipData(name);
+
+            if (friendshipData.Who != null)
+            {
+                FindQuestByCriteria(friendshipData);
+                bool isStrictQuestItem = activeItem.Data.DisplayName.Equals("Lost Axe") || activeItem.Data.DisplayName.Equals("Lucky Purple Shorts") || activeItem.Data.DisplayName.Equals("Berry Basket");
+
+                if (isStrictQuestItem && !allowQuestSubmissions)
                 {
-                    Game1.activeClickableMenu = new ChooseFromListMenu(options, OnSelectOption, false);
+                    return;
+                }
+                else if (discoveredQuest && allowQuestSubmissions)
+                {
+                    questData.ResolveOne(activeItem.Data);
+                    UpdateAndExit(friendshipData, questData.Points, true);
+                }
+                else if (friendshipData.CanReceiveGiftToday())
+                {
+                    int points = activeItem.GiftTasteRating(friendshipData);
+                    UpdateAndExit(friendshipData, points);
                 }
             }
         }
 
-        private static void OnSelectOption(string name)
+        private void UpdateAndExit(FriendshipData friendshipData, int points, bool quest = false)
         {
-            FriendshipData fd = new FriendshipData(name);
-
-            if (FriendshipData.who != null)
-            {
-                if (FriendshipData.CanReceiveGiftToday())
-                {
-                    int points = ActiveItem.FindNetValue();
-                    FriendshipData.Update(points);
-                    Game1.player.removeFirstOfThisItemFromInventory(ActiveItem.data.ParentSheetIndex);
-                    Game1.activeClickableMenu.exitThisMenu();
-                }
-            }
+            friendshipData.Update(points, activeItem.Data, quest);
+            Game1.player.reduceActiveItemByOne();
+            Game1.activeClickableMenu.exitThisMenu();
         }
     }
 }
