@@ -23,6 +23,8 @@ namespace PelicanPostalService
             {
                 if (e.KeyPressed.ToString() == config.MenuAccessKey)
                 {
+                    QuestData.Monitor = Monitor;
+                
                     ActiveItem activeItem = new ActiveItem(Game1.player.ActiveObject);
 
                     PostalService postalService = new PostalService(activeItem, config.AllowQuestSubmissions);

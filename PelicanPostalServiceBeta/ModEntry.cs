@@ -2,28 +2,32 @@
 using StardewModdingAPI.Events;
 using PelicanPostalService.Config;
 using PelicanPostalService.Framework.Menu;
+using PelicanPostalService.Framework.Player;
+using StardewValley;
 
 namespace PelicanPostalService
 {
     public class ModEntry : Mod
     {
-        private ModConfig Config;
+        private ModConfig config;
 
-        public override void Entry(IModHelper helper)
+        public override void Entry(IModHelper arg)
         {
-            Config = helper.ReadConfig<ModConfig>();
+            config = arg.ReadConfig<ModConfig>();
             ControlEvents.KeyPressed += ControlEvents_KeyPressed;
         }
 
         private void ControlEvents_KeyPressed(object sender, EventArgsKeyPressed e)
         {
-            if (!Context.IsWorldReady)
+            if (Context.IsWorldReady)
             {
-                return;
-            }
-            else if (e.KeyPressed.ToString() == Config.MenuAccessKey)
-            {
-                PostalService.Open();
+                if (e.KeyPressed.ToString() == config.MenuAccessKey)
+                {
+                    ActiveItem activeItem = new ActiveItem(Game1.player.ActiveObject);
+
+                    PostalService postalService = new PostalService(activeItem, config.AllowQuestSubmissions);
+                    postalService.Open(Game1.activeClickableMenu, Game1.player.CurrentTool);
+                }
             }
         }
     }

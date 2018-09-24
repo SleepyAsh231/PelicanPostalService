@@ -1,81 +1,82 @@
 ﻿using StardewValley;
-using System.Collections.Generic;
 
 namespace PelicanPostalService.Framework.Player
 {
     public class ActiveItem
     {
-        public static Object data;
+        public Object Data { get; private set; }
 
-        public static bool IsLegalGift()
+        public ActiveItem(Object item)
         {
-            if (data != null)
+            Data = item ?? null;
+        }
+
+        public int GiftTasteRating(FriendshipData friendshipData)
+        {
+            if (Data == null)
             {
-                List<string> list = new List<string> { "Bouquet", "Mermaid's Pendant", "Wedding Band" };
-                foreach (string key in list)
+                return 0;
+            }
+
+            GiftTaste giftTaste = new GiftTaste(Data, friendshipData);
+            return giftTaste.Rating;
+        }
+
+        private class GiftTaste
+        {
+            public int Rating { get; private set; }
+
+            public GiftTaste(Object item, FriendshipData friendshipData)
+            {
+                Rating = (int)(GiftTasteByNPC(item, friendshipData) * GiftTasteByWorldDate(friendshipData) * GiftTasteByItemQuality(item));
+            }
+
+            private float GiftTasteByItemQuality(Object item)
+            {
+                switch (item.Quality)
                 {
-                    if (data.DisplayName.Equals(key)) {
-                        return false;
-                    }
+                    case 1:
+                        return 1.1f;
+                    case 2:
+                        return 1.25f;
+                    case 4:
+                        return 1.5f;
+                    default:
+                        return 1f;
                 }
-                return data.canBeGivenAsGift() ? true : false;
             }
-            return false;
-        }
 
-        public static int FindNetValue()
-        {
-            return (int) (FindBaseValue() * FindDateValue() * FindQualityValue());
-        }
+            private int GiftTasteByNPC(Object item, FriendshipData friendshipData)
+            {
+                int flag = friendshipData.Who.getGiftTasteForThisItem(item);
+                switch (flag)
+                {
+                    case 0:
+                        return 80;
+                    case 2:
+                        return 45;
+                    case 4:
+                        return -20;
+                    case 6:
+                        return -40;
+                    case 8:
+                        return 20;
+                    default:
+                        return 0;
+                }
+            }
 
-        private static int FindBaseValue()
-        {
-            int flag = FriendshipData.who.getGiftTasteForThisItem(data);
-            switch (flag)
+            private int GiftTasteByWorldDate(FriendshipData friendshipData)
             {
-                case 0:
-                    return 80;
-                case 2:
-                    return 45;
-                case 4:
-                    return -20;
-                case 6:
-                    return -40;
-                case 8:
-                    return 20;
-                default:
-                    return 0;
-            }
-        }
-
-        private static int FindDateValue()
-        {
-            if (Game1.currentSeason.Equals("winter") && Game1.dayOfMonth == 25)
-            {
-                return 5;
-            }
-            else if (FriendshipData.isBirthday)
-            {
-                return 8;
-            }
-            else
-            {
+                if (Game1.currentSeason.Equals("winter") && Game1.dayOfMonth == 25)
+                {
+                    return 5;
+                }
+                else if (friendshipData.IsBirthday)
+                {
+                    return 8;
+                }
                 return 1;
-            }
-        }
-
-        private static float FindQualityValue()
-        {
-            switch (data.Quality)
-            {
-                case 1:
-                    return 1.1f;
-                case 2:
-                    return 1.25f;
-                case 4:
-                    return 1.5f;
-                default:
-                    return 1f;
             }
         }
     }

@@ -33,9 +33,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Stardew Valley, Version=1.3.6807.19293, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="Stardew Valley, Version=1.3.6835.27028, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>E:\Distractions\GOG\Games\Stardew Valley\Stardew Valley.exe</HintPath>
+    </Reference>
+    <Reference Include="StardewModdingAPI, Version=2.8.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>E:\Distractions\GOG\Games\Stardew Valley\StardewModdingAPI.exe</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -51,6 +55,7 @@
     <Compile Include="Framework\Menu\PostalService.cs" />
     <Compile Include="Framework\Player\FriendshipData.cs" />
     <Compile Include="Framework\Player\ActiveItem.cs" />
+    <Compile Include="Framework\Player\QuestData.cs" />
     <Compile Include="ModEntry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

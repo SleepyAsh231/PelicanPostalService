@@ -44,18 +44,20 @@ namespace PelicanPostalService.Framework.Player
             return table.Count > 0 ? Sort(table) : null;
         }
         
-        public void Update(int points, Item item, bool quest = false)
+        public void Update(int points, bool quest = false, string name = null)
         {
-            // [!] Game data is read-only unless accessed directly
-            Game1.player.friendshipData[Who.displayName].Points += points;
+            string who = name ?? Who.displayName;
+            Game1.player.friendshipData[who].Points += points;
 
             if (quest == false)
             {
-                ++Game1.player.friendshipData[Who.displayName].GiftsToday;
-                ++Game1.player.friendshipData[Who.displayName].GiftsThisWeek;
-                Game1.player.friendshipData[Who.displayName].LastGiftDate = Game1.Date;
+                ++Game1.player.friendshipData[who].GiftsToday;
+                ++Game1.player.friendshipData[who].GiftsThisWeek;
+                Game1.player.friendshipData[who].LastGiftDate = Game1.Date;
                 Game1.addHUDMessage(new HUDMessage("Item sent", 2));
             }
+
+            // Game data is read-only unless accessed directly
         }
 
         private static List<string> Sort(HashSet<string> table)
