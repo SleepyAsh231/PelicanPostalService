@@ -1,9 +1,9 @@
 ﻿using StardewValley;
 using System.Collections.Generic;
 
-namespace PelicanPostalService.Framework.Player
+namespace Project.Framework.Player.Friendship
 {
-    public class FriendshipData
+    public class FriendshipHandler
     {
         public bool IsBirthday { get; private set; }
         public NPC Who { get; private set; }
@@ -11,14 +11,13 @@ namespace PelicanPostalService.Framework.Player
         private readonly int giftsThisWeek;
         private readonly bool isSpouse;
 
-        public FriendshipData(string name)
+        public FriendshipHandler(string recipient)
         {
-            Who = Game1.getCharacterFromName(name, true);
+            Who = Game1.getCharacterFromName(recipient, true);
             IsBirthday = Game1.currentSeason.Equals(Who.Birthday_Season) && Game1.dayOfMonth == Who.Birthday_Day;
-
-            giftsThisDay = Game1.player.friendshipData[name].GiftsToday;
-            giftsThisWeek = Game1.player.friendshipData[name].GiftsThisWeek;
-            isSpouse = Game1.player.friendshipData[name].IsMarried();
+            giftsThisDay = Game1.player.friendshipData[recipient].GiftsToday;
+            giftsThisWeek = Game1.player.friendshipData[recipient].GiftsThisWeek;
+            isSpouse = Game1.player.friendshipData[recipient].IsMarried();
         }
 
         public bool CanReceiveGiftToday()
@@ -44,9 +43,9 @@ namespace PelicanPostalService.Framework.Player
             return table.Count > 0 ? Sort(table) : null;
         }
         
-        public void Update(int points, bool quest = false, string name = null)
+        public void Update(int points, bool quest, string otherRecipient)
         {
-            string who = name ?? Who.displayName;
+            string who = otherRecipient ?? Who.displayName;
             Game1.player.friendshipData[who].Points += points;
 
             if (quest == false)
@@ -56,8 +55,6 @@ namespace PelicanPostalService.Framework.Player
                 Game1.player.friendshipData[who].LastGiftDate = Game1.Date;
                 Game1.addHUDMessage(new HUDMessage("Item sent", 2));
             }
-
-            // Game data is read-only unless accessed directly
         }
 
         private static List<string> Sort(HashSet<string> table)
